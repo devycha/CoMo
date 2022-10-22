@@ -10,11 +10,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RegisterUserDto {
+public class LoginUserDto {
     private String username;
     private String password;
-    private String gender;
-
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDate birth;
 }

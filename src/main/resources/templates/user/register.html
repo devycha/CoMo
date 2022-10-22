@@ -56,14 +56,17 @@
                         <div class="d-flex justify-content-center align-items-end mt-2 mb-2">
                             <a href="/user/login" class="card-link">로그인 하기</a>
                             <a href="/user/find-password" class="card-link">비밀번호 찾기</a>
+                            <button type="submit" class="col-5 btn btn-success btn-block mx-3 inline-block">회원 가입</button>
                         </div>
-                            <button type="submit" class="col-5 btn btn-success btn-block mx-3">회원 가입</button>
+                        <div class="d-flex justify-content-center align-items-end mt-2 mb-2">
+
+                        </div>
                     </form>
                 </ul>
             </div>
-        </div>
 
-        <div class="text-warn" th:text="${errorMessage}">
+            <div class="text-danger danger" th:text="${errorMessage}">
+            </div>
         </div>
     </div>
 </html>

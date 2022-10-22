@@ -5,23 +5,30 @@ import com.dongjji.como.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(securedEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final UserService userService;
     private final LoginFailureHandler loginFailureHandler;
     private final AuthenticationSuccessHandler loginSuccessHandler;
+    private final DefaultOAuth2UserService principalOauth2UserService;
 
     @Bean
     public PasswordEncoder getPasswordEncoder() {
@@ -38,13 +45,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .hasAuthority("ROLE_ADMIN");
 
         http.authorizeRequests()
-//                .anyRequest().permitAll()
                 .antMatchers("/", "/home", "/user/login", "/user/register", "/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
 
                 .formLogin()
                 .loginPage("/user/login")
+                .loginProcessingUrl("/user/login")
                 .failureHandler(loginFailureHandler)
                 .successHandler(loginSuccessHandler)
                 .permitAll()
@@ -53,11 +60,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logout()
                 .logoutRequestMatcher(new AntPathRequestMatcher("/user/logout"))
                 .logoutSuccessUrl("/home")
-                .invalidateHttpSession(true);
+                .invalidateHttpSession(true)
 
-//        super.configure(http);
+                .and()
+                .oauth2Login()
+                .loginPage("/user/login")
+                .userInfoEndpoint()
+                .userService(principalOauth2UserService);
     }
-
 
     @Override
     public void configure(WebSecurity web) throws Exception {

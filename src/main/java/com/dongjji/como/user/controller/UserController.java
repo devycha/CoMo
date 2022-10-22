@@ -1,17 +1,14 @@
 package com.dongjji.como.user.controller;
 
+import com.dongjji.como.user.dto.LoginUserDto;
 import com.dongjji.como.user.dto.RegisterUserDto;
-import com.dongjji.como.user.entity.User;
 import com.dongjji.como.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -27,8 +24,7 @@ public class UserController {
     }
 
     @PostMapping("/user/login")
-    public void login() {
-
+    public void login(LoginUserDto loginUserDto) {
     }
 
     @GetMapping("/user/register")
@@ -39,7 +35,6 @@ public class UserController {
 
     @PostMapping("/user/register")
     public String register(RegisterUserDto registerUserDto, HttpServletRequest req) {
-        log.info("회원가입 진행중");
         userService.register(registerUserDto);
 
         return "redirect:/home";

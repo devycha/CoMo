@@ -1,4 +1,4 @@
-package com.dongjji.como.user.entity;
+package com.dongjji.como.user.type;
 
 public enum Gender {
     MEN, WOMEN

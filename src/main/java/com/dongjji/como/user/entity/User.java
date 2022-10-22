@@ -1,5 +1,8 @@
 package com.dongjji.como.user.entity;
 
+import com.dongjji.como.user.type.Gender;
+import com.dongjji.como.user.type.UserRole;
+import com.dongjji.como.user.type.UserStatus;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
@@ -27,6 +30,9 @@ public class User {
     private String email;
     private String password;
     private LocalDate birth;
+
+    private String provider;
+    private String providerId;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;

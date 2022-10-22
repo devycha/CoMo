@@ -1,10 +1,12 @@
 package com.dongjji.como.user.service.Impl;
 
+import com.dongjji.como.user.auth.PrincipalDetails;
+import com.dongjji.como.user.constant.SecurityConstants;
 import com.dongjji.como.user.dto.RegisterUserDto;
-import com.dongjji.como.user.entity.Gender;
+import com.dongjji.como.user.type.Gender;
 import com.dongjji.como.user.entity.User;
-import com.dongjji.como.user.entity.UserRole;
-import com.dongjji.como.user.entity.UserStatus;
+import com.dongjji.como.user.type.UserRole;
+import com.dongjji.como.user.type.UserStatus;
 import com.dongjji.como.user.exception.LoginFailException;
 import com.dongjji.como.user.repository.UserRepository;
 import com.dongjji.como.user.service.UserService;
@@ -17,8 +19,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -27,8 +27,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
-    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private final UserRepository userRepository;
+    private final SecurityConstants securityConstants;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
             grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         }
 
-        return new org.springframework.security.core.userdetails.User(user.getId(), user.getPassword(), grantedAuthorities);
+        return new PrincipalDetails(user);
     }
 
     @Override
@@ -62,14 +62,54 @@ public class UserServiceImpl implements UserService {
         System.out.println(registerUserDto.toString());
         userRepository.save(
                 User.builder()
-                    .email(registerUserDto.getUsername())
-                    .password(BCrypt.hashpw(registerUserDto.getPassword(), BCrypt.gensalt()))
-                    .birth(LocalDate.parse(registerUserDto.getBirth(), formatter))
-                    .gender(Gender.valueOf(registerUserDto.getGender()))
-                    .emailAuth(false)
-                    .role(UserRole.USER)
-                    .status(UserStatus.NEED_EMAIL_AUTH)
-                    .build()
+                        .email(registerUserDto.getUsername())
+                        .password(BCrypt.hashpw(registerUserDto.getPassword(), BCrypt.gensalt()))
+                        .birth(registerUserDto.getBirth())
+                        .gender(Gender.valueOf(registerUserDto.getGender()))
+                        .emailAuth(false)
+                        .role(UserRole.USER)
+                        .status(UserStatus.NEED_EMAIL_AUTH)
+                        .build()
         );
     }
+
+//    @Override
+//    public ResponseEntity<String> login(LoginUserDto loginUserDto) {
+//        Optional<User> findUser = userRepository.findByEmail(loginUserDto.getUsername());
+//        if (!findUser.isPresent()) {
+//            throw new UsernameNotFoundException("아이디 혹은 비밀번호가 일치하지 않습니다.");
+//        }
+//
+//        User user = findUser.get();
+//        if (user.getStatus().equals(UserStatus.DROP)
+//                || user.getStatus().equals(UserStatus.BAN)) {
+//            throw new LoginFailException("사용할 수 없는 계정입니다.");
+//        }
+//
+//        if (user.getStatus().equals(UserStatus.NEED_EMAIL_AUTH)) {
+//            throw new LoginFailException("이메일 인증 후 사용해주세요.");
+//        }
+//
+//        if (!BCrypt.checkpw(loginUserDto.getPassword(), user.getPassword())) {
+//            throw new LoginFailException("아이디 혹은 비밀번호가 일치하지 않습니다.");
+//        }
+//
+//        String token = generateToken(loginUserDto.getUsername(), user.getRole().toString());
+//
+//        System.out.println(token);
+//        return new ResponseEntity<String>(token, HttpStatus.OK);
+//    }
+
+//    private String generateToken(String username, String role) {
+//        byte[] signingKey = securityConstants.getJWT_SECRET().getBytes();
+//
+//        return Jwts.builder()
+//                .signWith(Keys.hmacShaKeyFor(signingKey), SignatureAlgorithm.HS512)
+//                .setHeaderParam("typ", SecurityConstants.TOKEN_TYPE)
+//                .setExpiration(new Date(System.currentTimeMillis() + 864))
+//                .claim("uid", username)
+//                .claim("rol", role)
+//                .compact();
+//
+//    }
 }
