@@ -1,8 +1,11 @@
 package com.dongjji.como.user.service.Impl;
 
+import com.dongjji.como.common.mail.GoogleMailSender;
 import com.dongjji.como.user.auth.PrincipalDetails;
 import com.dongjji.como.user.constant.SecurityConstants;
 import com.dongjji.como.user.dto.RegisterUserDto;
+import com.dongjji.como.user.exception.EmailAuthKeyExpiredException;
+import com.dongjji.como.user.exception.UserAlreadyExistException;
 import com.dongjji.como.user.type.Gender;
 import com.dongjji.como.user.entity.User;
 import com.dongjji.como.user.type.UserRole;
@@ -12,22 +15,27 @@ import com.dongjji.como.user.repository.UserRepository;
 import com.dongjji.como.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final GoogleMailSender googleMailSender;
     private final SecurityConstants securityConstants;
 
     @Override
@@ -59,18 +67,57 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void register(RegisterUserDto registerUserDto) {
-        System.out.println(registerUserDto.toString());
+        String email = registerUserDto.getUsername();
+        Optional<User> findUser = userRepository.findByEmail(email);
+
+        if (findUser.isPresent()) {
+            throw new UserAlreadyExistException("이미 존재하는 계정입니다.");
+        }
+
+        String uuid = UUID.randomUUID().toString();
+
+        googleMailSender.sendEmailAuthMail(email, uuid);
         userRepository.save(
                 User.builder()
-                        .email(registerUserDto.getUsername())
+                        .email(email)
                         .password(BCrypt.hashpw(registerUserDto.getPassword(), BCrypt.gensalt()))
                         .birth(registerUserDto.getBirth())
                         .gender(Gender.valueOf(registerUserDto.getGender()))
                         .emailAuth(false)
+                        .emailAuthKey(uuid)
                         .role(UserRole.USER)
                         .status(UserStatus.NEED_EMAIL_AUTH)
+                        .emailAuthValidationDt(LocalDateTime.now().plusDays(1))
                         .build()
         );
+    }
+
+    @Override
+    public boolean authorizeEmail(String authKey) {
+        Optional<User> findUser = userRepository.findByEmailAuthKey(authKey);
+        if (!findUser.isPresent()) {
+            return false;
+        }
+
+        User user = findUser.get();
+
+        if (!LocalDateTime.now().isBefore(user.getEmailAuthValidationDt())) {
+            throw new EmailAuthKeyExpiredException("기간이 만료된 인증키입니다.");
+        }
+
+        user.setEmailAuth(true);
+        user.setEmailAuthKey(null);
+        user.setEmailAuthValidationDt(null);
+        user.setStatus(UserStatus.AVAILABLE);
+
+        userRepository.save(user);
+        return true;
+    }
+    
+    @ExceptionHandler(EmailAuthKeyExpiredException.class)
+    private ResponseEntity<?> emailAuthKeyExpiredExceptionHandler(EmailAuthKeyExpiredException e) {
+        // TODO: 이메일 인증키 만료시 다시 발급받을 수 있는 링크를 제공해주는 로직 작성
+        return null;
     }
 
 //    @Override

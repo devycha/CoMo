@@ -8,5 +8,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 public interface UserService extends UserDetailsService {
     void register(RegisterUserDto registerUserDto);
 
+    boolean authorizeEmail(String authKey);
+
 //    ResponseEntity<String> login(LoginUserDto loginUserDto);
 }

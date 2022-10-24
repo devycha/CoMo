@@ -1,5 +1,6 @@
 package com.dongjji.como.user.auth;
 
+import com.dongjji.como.common.mail.GoogleMailSender;
 import com.dongjji.como.user.auth.provider.FacebookUserInfo;
 import com.dongjji.como.user.auth.provider.GoogleUserInfo;
 import com.dongjji.como.user.auth.provider.NaverUserInfo;
@@ -18,16 +19,20 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
     private final UserRepository userRepository;
+    private final GoogleMailSender googleMailSender;
 
     @Autowired
-    public PrincipalOauth2UserService(UserRepository userRepository) {
+    public PrincipalOauth2UserService(UserRepository userRepository, GoogleMailSender googleMailSender) {
         super();
         this.userRepository = userRepository;
+        this.googleMailSender = googleMailSender;
     }
 
     @Override
@@ -48,7 +53,10 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
             Optional<User> findUser = userRepository.findByEmail(email);
 
             if (!findUser.isPresent()) {
-                User user = User.builder()
+                String uuid = UUID.randomUUID().toString();
+
+                googleMailSender.sendEmailAuthMail(email, uuid);
+                userRepository.save(User.builder()
                         .email(email)
                         .password(BCrypt.hashpw("{OAuthLoginUser}", BCrypt.gensalt()))
                         .birth(LocalDate.now())
@@ -57,9 +65,10 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
                         .gender(Gender.MEN)
                         .provider(oAuth2UserInfo.getProvider())
                         .providerId(oAuth2UserInfo.getProviderId())
-                        .build();
-
-                userRepository.save(user);
+                        .emailAuth(false)
+                        .emailAuthKey(uuid)
+                        .emailAuthValidationDt(LocalDateTime.now().plusDays(1))
+                        .build());
             }
         }
 
