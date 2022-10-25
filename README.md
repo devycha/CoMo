@@ -4,7 +4,7 @@
 
 ---
 
-## 주제: 동아리 홈페이지(이름: Colub)
+## 주제: 동아리 홈페이지(이름: CoMo)
 
 ### 컨셉: 코딩 동아리 홈페이지를 만들어보자!
 ### 링크: [CoMo(코모)](https://dongjji.notion.site/CoMo-41ec3d15e380464cac26e6c5fcd098e5)

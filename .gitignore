@@ -38,5 +38,6 @@ out/
 
 application.properties
 application.yml
-application-local.yml
-application-dev.yml
+application-mail.yml
+application-security.yml
+application-test.yml
