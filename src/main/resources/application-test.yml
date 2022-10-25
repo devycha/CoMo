@@ -47,7 +47,7 @@ spring:
               - profile
           facebook:
             client-id: ${ FACEBOOK_LOGIN_CLIENT_ID }
-            client-secret: ${ 06476dc201c36aa2e2420176df522d99 }
+            client-secret: ${ FACEBOOK_LOGIN_CLIENT_SECRET }
             scope:
               - email
               - public_profile
