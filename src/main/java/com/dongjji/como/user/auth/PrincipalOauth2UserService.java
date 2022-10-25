@@ -72,8 +72,6 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
             }
         }
 
-        System.out.println(oAuth2User.getAttributes());
-
         return super.loadUser(userRequest);
     }
 }
