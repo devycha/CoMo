@@ -2,6 +2,7 @@ name: Test Coverage
 
 on:
   pull_request:
+    branches: [release]
 
 jobs:
   build:
