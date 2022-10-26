@@ -37,7 +37,7 @@ out/
 .vscode/
 
 application.properties
-
+/src/main/resources/application.yml
 application-mail.yml
 application-security.yml
 application-test.yml
