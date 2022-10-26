@@ -55,11 +55,3 @@ jacocoTestReport {
         xml.enabled true
     }
 }
-
-task copyPrivate(type: Copy) {
-    copy {
-        from './CoMo-Private'
-        include "*.yml"
-        into 'src/main/resources'
-    }
-}
