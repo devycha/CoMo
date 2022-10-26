@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:h2:~/Como
+    username: como
+    password: 1234
+    driverClassName: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+
+  jpa:
+    defer-datasource-initialization: true
+    database-platform: H2
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
