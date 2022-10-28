@@ -4,6 +4,7 @@ import com.dongjji.como.user.dto.RegisterUserDto;
 import com.dongjji.como.user.entity.User;
 import com.dongjji.como.user.exception.UserAlreadyExistException;
 import com.dongjji.como.user.repository.UserRepository;
+import com.dongjji.como.user.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +25,7 @@ class UserServiceImplTest {
     private UserRepository userRepository;
 
     @InjectMocks
-    private UserServiceImpl userServiceImpl;
+    private UserService userService;
 
     @Test
     @DisplayName("회원 가입 실패 : 이미 존재하는 계정")
@@ -39,7 +40,7 @@ class UserServiceImplTest {
 
         // when
         UserAlreadyExistException exception = assertThrows(UserAlreadyExistException.class,
-                () -> userServiceImpl.register(registerUserDto));
+                () -> userService.register(registerUserDto));
 
         // then
         assertEquals(exception.getMessage(), "이미 존재하는 계정입니다.");
