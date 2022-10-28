@@ -1,21 +1,19 @@
 package com.dongjji.como.user.controller;
 
-import com.dongjji.como.user.auth.PrincipalDetails;
-import com.dongjji.como.user.dto.LoginUserDto;
+import com.dongjji.como.user.dto.ChangeUserInfoDto;
+import com.dongjji.como.user.dto.MypageUserInfoDto;
 import com.dongjji.como.user.dto.RegisterUserDto;
 import com.dongjji.como.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -27,7 +25,7 @@ public class UserController {
     public String getLoginPage(Authentication authentication) {
         if (authentication != null) {
             System.out.println(authentication);
-            return "redirect:/home";
+            return "redirect:/";
         }
         return "user/login";
     }
@@ -46,7 +44,7 @@ public class UserController {
     public String register(RegisterUserDto registerUserDto, HttpServletRequest req) {
         userService.register(registerUserDto);
 
-        return "redirect:/home";
+        return "redirect:/";
     }
 
     @GetMapping("/user/email-auth")
@@ -55,5 +53,57 @@ public class UserController {
         model.addAttribute("result", result);
 
         return "redirect:/user/login";
+    }
+
+    @GetMapping("/user/mypage")
+    public String getMypage(Authentication authentication, Model model) {
+
+        if (authentication == null) {
+            return "redirect:/user/login";
+        }
+
+        String currentUserEmail = getCurrentUserEmail(authentication);
+        MypageUserInfoDto userDto = userService.getUserByEmail(currentUserEmail);
+        model.addAttribute("user", userDto);
+
+        return "user/mypage.html";
+    }
+
+    @PutMapping("/user/change-info")
+    public String changeUserInfo(@RequestParam String id,
+                                 ChangeUserInfoDto changeUserInfoDto,
+                                 Authentication authentication,
+                                 Model model) {
+        if (authentication == null) {
+            return "redirect:/user/login";
+        }
+
+        String currentUserEmail = getCurrentUserEmail(authentication);
+        MypageUserInfoDto userDto =
+                userService.changeUserInfo(id, currentUserEmail, changeUserInfoDto);
+        model.addAttribute("user", userDto);
+
+        return "user/mypage.html";
+    }
+
+    @DeleteMapping("/user/change-info")
+    public String deleteUser(@RequestParam String id,
+            Authentication authentication) {
+        if (authentication == null) {
+            return "redirect:/user/login";
+        }
+
+        String currentUserEmail = getCurrentUserEmail(authentication);
+        userService.deleteUser(id, currentUserEmail);
+
+        return "redirect:/user/logout";
+    }
+
+    private String getCurrentUserEmail(Authentication authentication) {
+        if (authentication == null) {
+            return null;
+        }
+
+        return ((UserDetails) authentication.getPrincipal()).getUsername();
     }
 }

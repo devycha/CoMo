@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{boilerplate}">
+
+<th:block layout:fragment="css">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</th:block>
+
+<div layout:fragment="content">
+    <div class="container d-flex justify-content-center">
+        <div class="membership-form">
+            <h1 class="display-1 text-center text"><a href="/">CoMo</a></h1>
+
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item active" aria-current="page">마이페이지</li>
+                    <li class="breadcrumb-item"><a class="text-muted" href="/user/mypage">정보 변경</a></li>
+                    <li class="breadcrumb-item active" aria-current="page"><a class="text-decoration-none text-muted"
+                                                                              href="/user/mypage/password">비밀번호 변경</a>
+                    </li>
+                </ol>
+            </nav>
+            <div class="member-info">
+                <form th:object="${changeUserInfoDto}" th:action="'/user/change-info?id=' + ${user.id}" th:method="post" class="membershipForm">
+                    <input type="hidden" name="_method" value="put"/>
+                        <div class="row">
+                            <div class="mb-3 col-lg-6">
+                                <label for="email" class="form-label">이메일 주소</label>
+                                <div class="form-floating mb-3">
+                                    <input th:value="${user.email}" name="email" type="email" class="form-control email"
+                                           id="email" placeholder="이메일 주소" readonly>
+                                    <label for="email">이메일</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-6 col-lg-6">
+                                <label for="password" class="form-label">비밀번호</label>
+                                <div class="form-floating">
+                                    <input type="password" class="form-control password" id="password" placeholder="비밀번호"
+                                           readonly>
+                                    <label for="password">"마이페이지 > 비밀번호 변경" 에서 가능합니다.</label>
+                                </div>
+                            </div>
+                        </div>
+
+                    <div class="row">
+                        <div class="mb-6 col-lg-6">
+                            <label for="birth" class="form-label">생년월일</label>
+                            <div class="form-floating mb-3">
+                                <input th:value="${user.birth}" name="birth" type="date" class="form-control name"
+                                       id="birth"  readonly>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 col-lg-6">
+                            <label for="gender" class="form-label">성별</label>
+                            <select name="gender" id="gender">
+                                <option th:selected="${user.gender} == MEN" value="MEN">남자</option>
+                                <option th:selected="${user.gender} == WOMEN" value="WOMEN">여자</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="container px-4 mb-3">
+                        수정하시려면 버튼을 눌러서 잠금을 해제해주세요 →
+                        <button class="update-user-btn btn btn-secondary p-2">수정 잠금 해제</button>
+                    </div>
+                </form>
+                <form th:action="'/user/change-info?id=' + ${user.id}" th:method="POST">
+                    <input type="hidden" name="_method" value="delete"/>
+                    <button class="btn btn-danger" type="submit" >탈퇴하기</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <th:block layout:fragment="script">
+        <script th:src="@{/js/mypage.js}"></script>
+    </th:block>
+</div>
+</html>
