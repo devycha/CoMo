@@ -1,19 +1,17 @@
 package com.dongjji.como.user.service;
 
+import com.dongjji.como.common.error.ErrorCode;
 import com.dongjji.como.common.mail.GoogleMailSender;
 import com.dongjji.como.user.auth.PrincipalDetails;
 import com.dongjji.como.user.constant.SecurityConstants;
 import com.dongjji.como.user.dto.ChangeUserInfoDto;
 import com.dongjji.como.user.dto.MypageUserInfoDto;
 import com.dongjji.como.user.dto.RegisterUserDto;
-import com.dongjji.como.user.exception.ChangeUserInfoFailedException;
-import com.dongjji.como.user.exception.EmailAuthKeyExpiredException;
-import com.dongjji.como.user.exception.UserAlreadyExistException;
+import com.dongjji.como.user.exception.*;
 import com.dongjji.como.user.type.Gender;
 import com.dongjji.como.user.entity.User;
 import com.dongjji.como.user.type.UserRole;
 import com.dongjji.como.user.type.UserStatus;
-import com.dongjji.como.user.exception.LoginFailException;
 import com.dongjji.como.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +24,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import javax.mail.SendFailedException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,17 +46,17 @@ public class UserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<User> findUser = userRepository.findByEmail(username);
         if (!findUser.isPresent()) {
-            throw new UsernameNotFoundException("아이디 혹은 비밀번호가 일치하지 않습니다.");
+            throw new UsernameNotFoundException(ErrorCode.USERNAME_NOT_FOUND.getErrorMessage());
         }
 
         User user = findUser.get();
         if (user.getStatus().equals(UserStatus.DROP)
             || user.getStatus().equals(UserStatus.BAN)) {
-            throw new LoginFailException("사용할 수 없는 계정입니다.");
+            throw new LoginFailException(ErrorCode.UN_AVAILABLE_USER);
         }
 
         if (user.getStatus().equals(UserStatus.NEED_EMAIL_AUTH)) {
-            throw new LoginFailException("이메일 인증 후 사용해주세요.");
+            throw new LoginFailException(ErrorCode.UN_AUTHORIZED_EMAIL);
         }
 
         List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
@@ -69,17 +69,23 @@ public class UserService implements UserDetailsService {
         return new PrincipalDetails(user);
     }
 
+    @Transactional
     public void register(RegisterUserDto registerUserDto) {
         String email = registerUserDto.getUsername();
         Optional<User> findUser = userRepository.findByEmail(email);
 
         if (findUser.isPresent()) {
-            throw new UserAlreadyExistException("이미 존재하는 계정입니다.");
+            throw new UserAlreadyExistException(ErrorCode.ALREADY_EXIST_USER);
         }
 
         String uuid = UUID.randomUUID().toString();
 
-        googleMailSender.sendEmailAuthMail(email, uuid);
+        try {
+            googleMailSender.sendEmailAuthMail(email, uuid);
+        } catch (Exception e) {
+            throw new SendEmailFailException(ErrorCode.SEND_MAIL_FAIL);
+        }
+
         userRepository.save(
                 User.builder()
                         .email(email)
@@ -95,16 +101,17 @@ public class UserService implements UserDetailsService {
         );
     }
 
-    public boolean authorizeEmail(String authKey) {
+    @Transactional
+    public void authorizeEmail(String authKey) {
         Optional<User> findUser = userRepository.findByEmailAuthKey(authKey);
         if (!findUser.isPresent()) {
-            return false;
+            throw new AuthKeyNotFoundException(ErrorCode.AUTH_KEY_NOT_FOUND);
         }
 
         User user = findUser.get();
 
         if (!LocalDateTime.now().isBefore(user.getEmailAuthValidationDt())) {
-            throw new EmailAuthKeyExpiredException("기간이 만료된 인증키입니다.");
+            throw new EmailAuthKeyExpiredException(ErrorCode.ALREADY_EXPIRED);
         }
 
         user.setEmailAuth(true);
@@ -113,7 +120,6 @@ public class UserService implements UserDetailsService {
         user.setStatus(UserStatus.AVAILABLE);
 
         userRepository.save(user);
-        return true;
     }
     
     @ExceptionHandler(EmailAuthKeyExpiredException.class)
@@ -122,6 +128,7 @@ public class UserService implements UserDetailsService {
         return null;
     }
 
+    @Transactional(readOnly = true)
     public MypageUserInfoDto getUserByEmail(String username) {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 계정입니다."));
@@ -129,6 +136,7 @@ public class UserService implements UserDetailsService {
         return MypageUserInfoDto.of(user);
     }
 
+    @Transactional
     public MypageUserInfoDto changeUserInfo(String userId, String currentUserEmail, ChangeUserInfoDto changeUserInfoDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 계정입니다."));
@@ -144,6 +152,7 @@ public class UserService implements UserDetailsService {
         return MypageUserInfoDto.of(user);
     }
 
+    @Transactional
     public void deleteUser(String userId, String currentUserEmail) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 계정입니다."));

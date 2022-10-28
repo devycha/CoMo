@@ -49,8 +49,8 @@ public class UserController {
 
     @GetMapping("/user/email-auth")
     public String emailAuth(@RequestParam("auth-key") String uuid, Model model) {
-        boolean result = userService.authorizeEmail(uuid);
-        model.addAttribute("result", result);
+        log.info("유저 이메일 계정 인증: " + uuid);
+        userService.authorizeEmail(uuid);
 
         return "redirect:/user/login";
     }

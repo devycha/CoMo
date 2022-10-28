@@ -2,8 +2,8 @@ package com.dongjji.como.user.exception;
 
 import com.dongjji.como.common.error.ErrorCode;
 
-public class EmailAuthKeyExpiredException extends RuntimeException {
-    public EmailAuthKeyExpiredException(ErrorCode errorCode) {
+public class SendEmailFailException extends RuntimeException {
+    public SendEmailFailException(ErrorCode errorCode) {
         super(errorCode.getErrorMessage());
     }
 }
