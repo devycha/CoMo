@@ -1,7 +1,9 @@
 package com.dongjji.como.user.exception;
 
+import com.dongjji.como.common.error.ErrorCode;
+
 public class ChangeUserInfoFailedException extends RuntimeException {
-    public ChangeUserInfoFailedException(String message) {
-        super(message);
+    public ChangeUserInfoFailedException(ErrorCode errorCode) {
+        super(errorCode.getErrorMessage());
     }
 }
