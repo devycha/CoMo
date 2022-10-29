@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{boilerplate}">
+
+<!-- index.html 고유 CSS 추가 -->
+<th:block layout:fragment="css">
+  <link rel="stylesheet" th:href="@{/css/login.css}">
+</th:block>
+
+<!-- index.html 고유 스크립트 추가 -->
+<th:block layout:fragment="script">
+  <!--    <script th:src="@{/js/page/home.js}"></script>-->
+</th:block>
+
+
+<div layout:fragment="content">
+  <a href="http://localhost:8080/user/login">로그인</a>
+  <a href="http://localhost:8080/user/register">로그인</a>
+  <a href="http://localhost:8080/user/logout">로그아웃</a>
+  <a href="http://localhost:8080/user/mypage">마이페이지</a>
+</div>
+</html>

@@ -1,8 +1,10 @@
 package com.dongjji.como.user.auth;
 
 import com.dongjji.como.user.entity.User;
+import com.dongjji.como.user.type.UserRole;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
@@ -33,12 +35,11 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> grantedAuthorityList = new ArrayList<>();
-        grantedAuthorityList.add(new GrantedAuthority() {
-            @Override
-            public String getAuthority() {
-                return user.getRole().toString();
-            }
-        });
+        grantedAuthorityList.add(new SimpleGrantedAuthority("ROLE_USER"));
+
+        if (user.getRole().equals(UserRole.ADMIN)) {
+            grantedAuthorityList.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        }
 
         return grantedAuthorityList;
     }

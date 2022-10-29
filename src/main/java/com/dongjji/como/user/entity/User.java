@@ -24,10 +24,12 @@ public class User {
     @Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid")
-    @Column(name = "id", unique = true)
+    @Column(name="id", unique = true)
     private String id;
 
+    @Column(unique = true)
     private String email;
+
     private String password;
     private LocalDate birth;
 
