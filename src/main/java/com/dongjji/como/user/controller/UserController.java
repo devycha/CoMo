@@ -63,7 +63,7 @@ public class UserController {
         }
 
         String currentUserEmail = getCurrentUserEmail(authentication);
-        MypageUserInfoDto userDto = userService.getUserByEmail(currentUserEmail);
+        MypageUserInfoDto userDto = userService.getUserInfoByEmail(currentUserEmail);
         model.addAttribute("user", userDto);
 
         return "user/mypage.html";
@@ -87,14 +87,14 @@ public class UserController {
     }
 
     @DeleteMapping("/user/change-info")
-    public String deleteUser(@RequestParam String id,
+    public String dropUser(@RequestParam String id,
             Authentication authentication) {
         if (authentication == null) {
             return "redirect:/user/login";
         }
 
         String currentUserEmail = getCurrentUserEmail(authentication);
-        userService.deleteUser(id, currentUserEmail);
+        userService.dropUser(id, currentUserEmail);
 
         return "redirect:/user/logout";
     }

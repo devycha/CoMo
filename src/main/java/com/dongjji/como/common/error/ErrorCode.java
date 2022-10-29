@@ -12,6 +12,7 @@ public enum ErrorCode {
     ALREADY_EXPIRED(HttpStatus.NOT_ACCEPTABLE, "유효 기간이 끝난 이메일 인증키입니다."),
     SEND_MAIL_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "이메일 전송에 실패했습니다."),
     AUTH_KEY_NOT_FOUND(HttpStatus.BAD_REQUEST, "발급되지 않거나 만료된 이메일 인증 키입니다."),
+    FORBIDDEN(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
     UN_AVAILABLE_USER(HttpStatus.UNAUTHORIZED, "사용할 수 없는 계정입니다.");
 
 

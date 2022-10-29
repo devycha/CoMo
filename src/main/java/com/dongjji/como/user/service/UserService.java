@@ -44,12 +44,9 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> findUser = userRepository.findByEmail(username);
-        if (!findUser.isPresent()) {
-            throw new UsernameNotFoundException(ErrorCode.USERNAME_NOT_FOUND.getErrorMessage());
-        }
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException(ErrorCode.USERNAME_NOT_FOUND.getErrorMessage()));
 
-        User user = findUser.get();
         if (user.getStatus().equals(UserStatus.DROP)
             || user.getStatus().equals(UserStatus.BAN)) {
             throw new LoginFailException(ErrorCode.UN_AVAILABLE_USER);
@@ -129,9 +126,9 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional(readOnly = true)
-    public MypageUserInfoDto getUserByEmail(String username) {
+    public MypageUserInfoDto getUserInfoByEmail(String username) {
         User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 계정입니다."));
+                .orElseThrow(() -> new UsernameNotFoundException(ErrorCode.USERNAME_NOT_FOUND.getErrorMessage()));
 
         return MypageUserInfoDto.of(user);
     }
@@ -139,10 +136,10 @@ public class UserService implements UserDetailsService {
     @Transactional
     public MypageUserInfoDto changeUserInfo(String userId, String currentUserEmail, ChangeUserInfoDto changeUserInfoDto) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 계정입니다."));
+                .orElseThrow(() -> new UsernameNotFoundException(ErrorCode.USERNAME_NOT_FOUND.getErrorMessage()));
 
         if (!user.getEmail().equals(currentUserEmail)) {
-            throw new ChangeUserInfoFailedException("삭제할 수 있는 권한이 없습니다.");
+            throw new ChangeUserInfoFailedException(ErrorCode.FORBIDDEN);
         }
 
         user.setBirth(changeUserInfoDto.getBirth());
@@ -153,12 +150,12 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public void deleteUser(String userId, String currentUserEmail) {
+    public void dropUser(String userId, String currentUserEmail) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 계정입니다."));
+                .orElseThrow(() -> new UsernameNotFoundException(ErrorCode.USERNAME_NOT_FOUND.getErrorMessage()));
 
         if (!user.getEmail().equals(currentUserEmail)) {
-            throw new ChangeUserInfoFailedException("삭제할 수 있는 권한이 없습니다.");
+            throw new ChangeUserInfoFailedException(ErrorCode.FORBIDDEN);
         }
 
         user.setStatus(UserStatus.DROP);
