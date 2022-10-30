@@ -1,5 +1,7 @@
 package com.dongjji.como.user.entity;
 
+import com.dongjji.como.admin.dto.AdminChangeUserDto;
+import com.dongjji.como.user.dto.ChangeUserInfoDto;
 import com.dongjji.como.user.type.Gender;
 import com.dongjji.como.user.type.UserRole;
 import com.dongjji.como.user.type.UserStatus;
@@ -54,4 +56,17 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private UserStatus status;
+
+    public void changeUserByMypage(ChangeUserInfoDto changeUserInfoDto) {
+        this.setBirth(changeUserInfoDto.getBirth());
+        this.setGender(Gender.valueOf(changeUserInfoDto.getGender()));
+    }
+
+    public void changeUserByAdmin(AdminChangeUserDto adminChangeUserDto) {
+        this.setBirth(adminChangeUserDto.getBirth());
+        this.setGender(Gender.valueOf(adminChangeUserDto.getGender()));
+        this.setEmailAuth(adminChangeUserDto.isEmailAuth());
+        this.setRole(UserRole.valueOf(adminChangeUserDto.getRole()));
+        this.setStatus(UserStatus.valueOf(adminChangeUserDto.getStatus()));
+    }
 }

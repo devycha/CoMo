@@ -55,7 +55,7 @@ public class UserController {
         return "redirect:/user/login";
     }
 
-    @GetMapping("/user/mypage")
+    @GetMapping("/user/my-page")
     public String getMypage(Authentication authentication, Model model) {
 
         if (authentication == null) {
@@ -69,7 +69,7 @@ public class UserController {
         return "user/mypage.html";
     }
 
-    @PutMapping("/user/change-info")
+    @PutMapping("/user/my-page")
     public String changeUserInfo(@RequestParam String id,
                                  ChangeUserInfoDto changeUserInfoDto,
                                  Authentication authentication,
@@ -86,7 +86,7 @@ public class UserController {
         return "user/mypage.html";
     }
 
-    @DeleteMapping("/user/change-info")
+    @DeleteMapping("/user/my-page")
     public String dropUser(@RequestParam String id,
             Authentication authentication) {
         if (authentication == null) {
