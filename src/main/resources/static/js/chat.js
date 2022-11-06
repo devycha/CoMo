@@ -12,9 +12,9 @@ let msgInput = document.querySelector("#chat-outgoing-msg");
 eventSource.onmessage = (e) => {
     const data = JSON.parse(e.data);
 
-    if (data.sender == "ssar") {
+    if (data.sender == myName) {
         initOutgoingMessage(data.msg, data.createdAt)
-    } else {
+    } else if (data.sender == chatName) {
         initIncomingMessage(data.msg, data.createdAt)
     }
 
@@ -70,7 +70,7 @@ function initOutgoingMessage(msg, time) {
 
 function initIncomingMessage(msg, time) {
     let chatOutgoingBox = document.createElement("div");
-    chatOutgoingBox.className = "incoming_msg";
+    chatOutgoingBox.className = "received_msg";
     const convertTime =
         time.substring(5, 10) + " | " + time.substring(11, 16)
 

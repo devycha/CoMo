@@ -3,13 +3,29 @@ package com.dongjji.como.chat.service;
 import com.dongjji.como.chat.dto.ChatRoomDto;
 import com.dongjji.como.chat.entity.ChatRoom;
 import com.dongjji.como.chat.repository.ChatRoomRepository;
+import com.dongjji.como.chat.type.ChatType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.dongjji.como.chat.type.ChatType.UNKNOWN;
 
 @Service
 @RequiredArgsConstructor
 public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
+
+    public List<ChatRoomDto.Response> getMyChats(String email) {
+
+        List<ChatRoomDto.Response> collect = chatRoomRepository.findAllByCapUserOrInvitedUser(email, email)
+                .stream().map(e -> ChatRoomDto.Response.of(email, e))
+                .collect(Collectors.toList());
+
+        System.out.println(collect);
+        return collect;
+    }
 
 
     public long createNewChat(String capEmail, String invitedEmail) {
@@ -28,8 +44,8 @@ public class ChatRoomService {
                 () -> new RuntimeException("존재하지 않는 채팅방 입니다.")
         );
 
-        String chatName = "(알수 없는 이름)";
-        String myName = "(알수 없는 이름)";
+        String chatName = UNKNOWN.getName();
+        String myName = UNKNOWN.getName();
 
         if (chatRoom.getCapUser().equals(email)) {
             chatName = chatRoom.getInvitedUser();
@@ -45,6 +61,39 @@ public class ChatRoomService {
                 .id(chatRoomId)
                 .myName(myName)
                 .chatName(chatName)
+                .capName(chatRoom.getCapUser())
                 .build();
+    }
+
+    public void getOutChatRoom(long chatRoomId, String email) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(
+                () -> new RuntimeException("존재하지 않는 채팅방 입니다.")
+        );
+
+        if (chatRoom.getCapUser().equals(email)) {
+            chatRoom.setCapUser(UNKNOWN.getName());
+        } else if (chatRoom.getInvitedUser().equals(email)) {
+            chatRoom.setInvitedUser(UNKNOWN.getName());
+        } else {
+            throw new RuntimeException("권한이 없는 접근입니다.");
+        }
+
+        chatRoomRepository.save(chatRoom);
+        if (chatRoom.getCapUser().equals(UNKNOWN.getName())
+                && chatRoom.getInvitedUser().equals(UNKNOWN.getName())) {
+            chatRoomRepository.delete(chatRoom);
+        }
+    }
+
+    public void deleteChatRoom(long chatRoomId, String email) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(
+                () -> new RuntimeException("존재하지 않는 채팅방 입니다.")
+        );
+
+        if (!chatRoom.getCapUser().equals(email)) {
+            throw new RuntimeException("채팅방의 방장이 아닙니다.");
+        }
+
+        chatRoomRepository.delete(chatRoom);
     }
 }

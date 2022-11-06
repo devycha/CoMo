@@ -6,12 +6,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.time.LocalDateTime;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -29,7 +26,7 @@ public class ChatController {
 
     @ResponseBody
     @CrossOrigin
-    @GetMapping(value="/chat/{roomNum}", produces= MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(value = "/chat/{roomNum}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<Chat> getPublicMsg(@PathVariable Integer roomNum) {
         return chatService.getPublicChats(roomNum);
     }
