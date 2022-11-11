@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{boilerplate}">
+
+<!-- index.html 고유 CSS 추가 -->
+<th:block layout:fragment="css">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</th:block>
+
+<!-- index.html 고유 스크립트 추가 -->
+<th:block layout:fragment="script">
+    <!--    <script th:src="@{/js/page/home.js}"></script>-->
+</th:block>
+
+
+<div layout:fragment="content">
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">이메일</th>
+            <th scope="col">이메일 인증 여부</th>
+            <th scope="col">유저 상태</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${users}">
+            <td th:text="${userStat.index+1}"></td>
+            <td><a th:href="@{'/admin/user?id=' + ${user.id}}" th:text="${user.email}"></a></td>
+            <td th:text="${user.emailAuth ? 'YES' : 'NO'}"></td>
+            <td th:text="${user.status}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</html>

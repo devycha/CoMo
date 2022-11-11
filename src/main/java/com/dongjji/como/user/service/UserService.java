@@ -142,8 +142,7 @@ public class UserService implements UserDetailsService {
             throw new ChangeUserInfoFailedException(ErrorCode.FORBIDDEN);
         }
 
-        user.setBirth(changeUserInfoDto.getBirth());
-        user.setGender(Gender.valueOf(changeUserInfoDto.getGender()));
+        user.changeUserByMypage(changeUserInfoDto);
         userRepository.save(user);
 
         return MypageUserInfoDto.of(user);

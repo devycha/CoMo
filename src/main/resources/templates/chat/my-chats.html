@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{boilerplate}">
+
+<!-- index.html 고유 CSS 추가 -->
+<th:block layout:fragment="css">
+<!--    <link rel="stylesheet" th:href="@{/css/login.css}">-->
+</th:block>
+
+<!-- index.html 고유 스크립트 추가 -->
+<th:block layout:fragment="script">
+    <!--    <script th:src="@{/js/page/home.js}"></script>-->
+</th:block>
+
+<div layout:fragment="content">
+    <form action="/chat/my-chats" method="POST">
+        <label for="invitedEmail">초대할 대화 상대</label>
+        <input id="invitedEmail" type="text" name="invitedEmail"/>
+        <button class="btn btn-primary">채팅 시작하기</button>
+    </form>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th scope="col">번호</th>
+            <th scope="col">채팅방</th>
+            <th scope="col">방장</th>
+            <th scope="col">입장하기</th>
+            <th scope="col">나가기</th>
+            <th scope="col">삭제하기</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="chatRoom : ${chatRooms}">
+            <td th:text="${chatRoomStat.index+1}"></td>
+            <td th:text="${chatRoom.getChatName()}"></td>
+            <td th:text="${chatRoom.getCapName()}"></td>
+            <td><a class="btn btn-primary" th:href="@{'/chat/my-chats/' + ${chatRoom.getId()}}">입장하기</a></td>
+            <form th:action="@{'/chat/my-chats/out/' + ${chatRoom.getId()}}" method="POST">
+                <input type="hidden" name="_method" value="delete"/>
+                <td><button type="submit" class="btn btn-danger">나가기</button></td>
+            </form>
+
+            <form th:if="${#strings.equals(chatRoom.getCapName(), myEmail)}" th:action="@{'/chat/my-chats/' + ${chatRoom.getId()}}" method="POST">
+                <input type="hidden" name="_method" value="delete"/>
+                <td><button type="submit" class="btn btn-danger">삭제하기</button></td>
+            </form>
+
+        </tr>
+        </tbody>
+    </table>
+</div>
+</html>
