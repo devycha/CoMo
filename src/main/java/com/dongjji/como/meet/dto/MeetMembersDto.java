@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class MeetMembersDto {
 
