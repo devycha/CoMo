@@ -3,11 +3,13 @@ package com.dongjji.como.meet.controller;
 import com.dongjji.como.meet.dto.CreateMeetDto;
 import com.dongjji.como.meet.dto.ExtendMeetPeriodDto;
 import com.dongjji.como.meet.dto.InviteMembersDto;
+import com.dongjji.como.meet.dto.MeetMembersDto;
 import com.dongjji.como.meet.entity.Meet;
 import com.dongjji.como.meet.entity.MeetApply;
 import com.dongjji.como.meet.entity.MeetInvitation;
 import com.dongjji.como.meet.service.MeetApplyService;
 import com.dongjji.como.meet.service.MeetInvitationService;
+import com.dongjji.como.meet.service.MeetJoinService;
 import com.dongjji.como.meet.service.MeetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,6 +28,7 @@ import java.util.List;
 @RequestMapping("/meet")
 public class MeetController {
     private final MeetService meetService;
+    private final MeetJoinService meetJoinService;
     private final MeetInvitationService meetInvitationService;
     private final MeetApplyService meetApplyService;
 
@@ -131,6 +134,15 @@ public class MeetController {
         // TODO: 그룹장만 기간 연장이 가능하게 PreAuthorize 적용 해야함.
         meetService.extendPeriod(extendMeetPeriodDto);
         return "meet/meet-detail";
+    }
+
+    @GetMapping("/members/{meetId}")
+    public String getMeetMembers(@PathVariable Long meetId, String email, Model model) {
+        // TODO: 인증 정보 가져와서 email 넘겨주기
+        MeetMembersDto.Response members = meetJoinService.getMeetMembers(meetId);
+        model.addAttribute("members", members);
+
+        return "meet/members";
     }
 
     @Scheduled(cron = "${scheduler.cron.period}")
