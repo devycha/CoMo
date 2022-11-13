@@ -6,10 +6,12 @@ import com.dongjji.como.chat.exception.ChatRoomNotFoundException;
 import com.dongjji.como.chat.exception.UnAuthorizedChatRoomAccessException;
 import com.dongjji.como.chat.repository.ChatRepository;
 import com.dongjji.como.chat.repository.ChatRoomRepository;
+import com.dongjji.como.chat.type.ChatType;
 import com.dongjji.como.common.error.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -22,6 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ChatRoomServiceTest {
@@ -182,4 +186,146 @@ class ChatRoomServiceTest {
         assertEquals(response.getCapName(), myEmail);
         assertEquals(response.getChatName(), inviteUser);
     }
+
+    @Test
+    @DisplayName("채팅방 나가기 실패 : 존재하지 않는 채팅방")
+    void getOutChatRoomFailedByNotFoundExceptionTest() {
+        //given
+        given(chatRoomRepository.findById(anyLong())).willReturn(Optional.empty());
+
+        //when
+        ChatRoomNotFoundException exception = assertThrows(ChatRoomNotFoundException.class,
+                () -> chatRoomService.getOutChatRoom(1L, "myEmail"));
+
+        //then
+        assertEquals(exception.getMessage(), ErrorCode.CHATROOM_NOT_FOUND.getErrorMessage());
+    }
+
+    @Test
+    @DisplayName("채팅방 나가기 실패 : 권한 없음")
+    void getOutChatRoomFailedByUnAuthorizedTest() {
+        Long id = 1L;
+        String myEmail = "myEmail";
+        String capUser = "capUser";
+        String inviteUser = "notMyEmail";
+
+        ChatRoom chatRoom = ChatRoom.builder()
+                .id(id)
+                .capUser(capUser)
+                .invitedUser(inviteUser)
+                .build();
+
+        // given
+        given(chatRoomRepository.findById(anyLong()))
+                .willReturn(Optional.of(chatRoom));
+
+        // when
+        UnAuthorizedChatRoomAccessException exception = assertThrows(UnAuthorizedChatRoomAccessException.class,
+                () -> chatRoomService.getOutChatRoom(1L, myEmail));
+
+        // then
+        assertEquals(exception.getMessage(), ErrorCode.FORBIDDEN.getErrorMessage());
+    }
+
+    @Test
+    @DisplayName("채팅방 나가기 성공 : 채팅방 유저 남아있음")
+    public void getOutChatRoomRemainingUserSuccessTest() {
+        //given
+        Long id = 1L;
+        String myEmail = "myEmail";
+        String capUser = "capUser";
+        String inviteUser = "myEmail";
+
+        ChatRoom chatRoom = ChatRoom.builder()
+                .id(id)
+                .capUser(capUser)
+                .invitedUser(inviteUser)
+                .build();
+
+        given(chatRoomRepository.findById(anyLong()))
+                .willReturn(Optional.of(chatRoom));
+
+        ArgumentCaptor<ChatRoom> argumentCaptor = ArgumentCaptor.forClass(ChatRoom.class);
+
+        //when
+        chatRoomService.getOutChatRoom(1L, myEmail);
+        verify(chatRoomRepository).save(argumentCaptor.capture());
+
+        //then
+        ChatRoom savedChatRoom = argumentCaptor.getValue();
+        assertEquals(savedChatRoom.getInvitedUser(), ChatType.UNKNOWN.getName());
+        assertEquals(chatRoom, savedChatRoom);
+    }
+
+    @Test
+    @DisplayName("채팅방 나가기 및 삭제 성공 : 채팅방에 남아있는 유저 없음")
+    public void getOutChatRoomAndDeletedByEmptySuccessTest() {
+        // given
+        Long id = 1L;
+        String myEmail = "myEmail";
+        String capUser = ChatType.UNKNOWN.getName();
+        String inviteUser = "myEmail";
+
+        ChatRoom chatRoom = ChatRoom.builder()
+                .id(id)
+                .capUser(capUser)
+                .invitedUser(inviteUser)
+                .build();
+
+        given(chatRoomRepository.findById(anyLong()))
+                .willReturn(Optional.of(chatRoom));
+
+        ArgumentCaptor<ChatRoom> argumentCaptor = ArgumentCaptor.forClass(ChatRoom.class);
+
+        // when
+        chatRoomService.getOutChatRoom(1L, myEmail);
+        verify(chatRoomRepository).delete(argumentCaptor.capture());
+
+        // then
+        ChatRoom savedChatRoom = argumentCaptor.getValue();
+        assertEquals(savedChatRoom.getCapUser(), ChatType.UNKNOWN.getName());
+        assertEquals(savedChatRoom.getInvitedUser(), ChatType.UNKNOWN.getName());
+        assertEquals(chatRoom, savedChatRoom);
+    }
+
+    @Test
+    @DisplayName("채팅방 삭제 실패 : 존재하지 않는 채팅방")
+    void deleteChatRoomFailedByNotFoundExceptionTest() {
+        //given
+        given(chatRoomRepository.findById(anyLong())).willReturn(Optional.empty());
+
+        //when
+        ChatRoomNotFoundException exception = assertThrows(ChatRoomNotFoundException.class,
+                () -> chatRoomService.deleteChatRoom(1L, "myEmail"));
+
+        //then
+        assertEquals(exception.getMessage(), ErrorCode.CHATROOM_NOT_FOUND.getErrorMessage());
+    }
+
+    @Test
+    @DisplayName("채팅방 삭제 실패 : 권한 없음")
+    void deleteChatRoomFailedByUnAuthorizedTest() {
+        Long id = 1L;
+        String myEmail = "myEmail";
+        String capUser = "capUser";
+        String inviteUser = "notMyEmail";
+
+        ChatRoom chatRoom = ChatRoom.builder()
+                .id(id)
+                .capUser(capUser)
+                .invitedUser(inviteUser)
+                .build();
+
+        // given
+        given(chatRoomRepository.findById(anyLong()))
+                .willReturn(Optional.of(chatRoom));
+
+        // when
+        UnAuthorizedChatRoomAccessException exception = assertThrows(UnAuthorizedChatRoomAccessException.class,
+                () -> chatRoomService.deleteChatRoom(1L, myEmail));
+
+        // then
+        assertEquals(exception.getMessage(), ErrorCode.FORBIDDEN.getErrorMessage());
+    }
+
 }
