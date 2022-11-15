@@ -2,8 +2,10 @@ package com.dongjji.como.chat.service;
 
 import com.dongjji.como.chat.dto.ChatRoomDto;
 import com.dongjji.como.chat.entity.ChatRoom;
+import com.dongjji.como.chat.exception.ChatRoomNotFoundException;
+import com.dongjji.como.chat.exception.UnAuthorizedChatRoomAccessException;
 import com.dongjji.como.chat.repository.ChatRoomRepository;
-import com.dongjji.como.chat.type.ChatType;
+import com.dongjji.como.common.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,12 +21,12 @@ public class ChatRoomService {
 
     public List<ChatRoomDto.Response> getMyChats(String email) {
 
-        List<ChatRoomDto.Response> collect = chatRoomRepository.findAllByCapUserOrInvitedUser(email, email)
+        List<ChatRoomDto.Response> chats = chatRoomRepository
+                .findAllByCapUserOrInvitedUser(email, email)
                 .stream().map(e -> ChatRoomDto.Response.of(email, e))
                 .collect(Collectors.toList());
 
-        System.out.println(collect);
-        return collect;
+        return chats;
     }
 
 
@@ -41,7 +43,7 @@ public class ChatRoomService {
 
     public ChatRoomDto.Response verifyChatAuth(String email, long chatRoomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(
-                () -> new RuntimeException("존재하지 않는 채팅방 입니다.")
+                () -> new ChatRoomNotFoundException(ErrorCode.CHATROOM_NOT_FOUND)
         );
 
         String chatName = UNKNOWN.getName();
@@ -54,7 +56,7 @@ public class ChatRoomService {
             chatName = chatRoom.getCapUser();
             myName = chatRoom.getInvitedUser();
         } else {
-            throw new RuntimeException("접근 권한이 없습니다");
+            throw new UnAuthorizedChatRoomAccessException(ErrorCode.FORBIDDEN);
         }
 
         return ChatRoomDto.Response.builder()
@@ -67,7 +69,7 @@ public class ChatRoomService {
 
     public void getOutChatRoom(long chatRoomId, String email) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(
-                () -> new RuntimeException("존재하지 않는 채팅방 입니다.")
+                () -> new ChatRoomNotFoundException(ErrorCode.CHATROOM_NOT_FOUND)
         );
 
         if (chatRoom.getCapUser().equals(email)) {
@@ -75,7 +77,7 @@ public class ChatRoomService {
         } else if (chatRoom.getInvitedUser().equals(email)) {
             chatRoom.setInvitedUser(UNKNOWN.getName());
         } else {
-            throw new RuntimeException("권한이 없는 접근입니다.");
+            throw new UnAuthorizedChatRoomAccessException(ErrorCode.FORBIDDEN);
         }
 
         chatRoomRepository.save(chatRoom);
@@ -87,11 +89,11 @@ public class ChatRoomService {
 
     public void deleteChatRoom(long chatRoomId, String email) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId).orElseThrow(
-                () -> new RuntimeException("존재하지 않는 채팅방 입니다.")
+                () -> new ChatRoomNotFoundException(ErrorCode.CHATROOM_NOT_FOUND)
         );
 
         if (!chatRoom.getCapUser().equals(email)) {
-            throw new RuntimeException("채팅방의 방장이 아닙니다.");
+            throw new UnAuthorizedChatRoomAccessException(ErrorCode.FORBIDDEN);
         }
 
         chatRoomRepository.delete(chatRoom);

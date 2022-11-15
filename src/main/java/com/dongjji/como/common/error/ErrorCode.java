@@ -13,7 +13,9 @@ public enum ErrorCode {
     SEND_MAIL_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "이메일 전송에 실패했습니다."),
     AUTH_KEY_NOT_FOUND(HttpStatus.BAD_REQUEST, "발급되지 않거나 만료된 이메일 인증 키입니다."),
     FORBIDDEN(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
-    UN_AVAILABLE_USER(HttpStatus.UNAUTHORIZED, "사용할 수 없는 계정입니다.");
+    UN_AVAILABLE_USER(HttpStatus.UNAUTHORIZED, "사용할 수 없는 계정입니다."),
+    
+    CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 채팅방입니다.");
 
 
     private final HttpStatus errorCode;
